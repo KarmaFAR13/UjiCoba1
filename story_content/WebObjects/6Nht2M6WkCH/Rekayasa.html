@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulator Keselamatan Pantai</title>
+    <style>
+        body, html {
+            margin: 0; padding: 0; width: 100%; height: 100%;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            overflow: hidden;
+        }
+
+        /* LATAR BELAKANG */
+        #background {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background-size: cover;
+            background-position: center;
+            transition: background-image 0.5s ease-in-out;
+            z-index: -1;
+        }
+
+        /* GAYA PANEL UI */
+        .panel {
+            position: absolute;
+            background: rgba(10, 50, 90, 0.85);
+            border: 2px solid #5ab0db;
+            border-radius: 8px;
+            color: white;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            backdrop-filter: blur(4px);
+        }
+
+        .panel h3 {
+            margin-top: 0;
+            background: linear-gradient(90deg, #186299, transparent);
+            padding: 5px;
+            font-size: 16px;
+            border-bottom: 1px solid #5ab0db;
+        }
+
+        /* POSISI PANEL */
+        #title-bar {
+            top: 10px; left: 50%; transform: translateX(-50%);
+            background: linear-gradient(180deg, #1f4e79, #0d2640);
+            padding: 10px 40px; border-bottom-left-radius: 20px; border-bottom-right-radius: 20px;
+            border: 2px solid #edb342; border-top: none;
+            text-align: center; color: #edb342; font-weight: bold; position: absolute; z-index: 10;
+        }
+        #title-bar h1 { margin: 0; font-size: 24px; text-transform: uppercase; }
+        #title-bar p { margin: 0; color: white; font-size: 14px; }
+
+        #status-panel { top: 20px; left: 20px; width: 220px; }
+        #sensor-panel { top: 180px; left: 20px; width: 220px; }
+        .sensor-item { margin-bottom: 15px; }
+        .sensor-item label { display: flex; justify-content: space-between; font-size: 14px; }
+        input[type=range] { width: 100%; margin-top: 5px; }
+
+        #action-panel { bottom: 20px; left: 50%; transform: translateX(-50%); width: 450px; text-align: center;}
+        .action-btn {
+            background: linear-gradient(180deg, #2a7db5, #124d77);
+            border: 1px solid #edb342; color: white;
+            padding: 10px 20px; margin: 5px; border-radius: 5px;
+            cursor: pointer; font-weight: bold; width: 30%;
+        }
+        .action-btn:hover { background: #edb342; color: black; }
+        .btn-red { background: linear-gradient(180deg, #b52a2a, #771212); }
+        
+        #alerts-panel { top: 180px; right: 20px; width: 250px; height: 300px; overflow-y: auto; }
+        .log-entry { font-size: 13px; margin-bottom: 10px; border-bottom: 1px solid rgba(255,255,255,0.2); padding-bottom: 8px;}
+        .log-salah { color: #ff9e9e; }
+        .log-benar { color: #8ce99a; }
+
+        /* POP-UP NOTIFIKASI DI TENGAH LAYAR */
+        #popup-overlay {
+            display: none;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); z-index: 100;
+            justify-content: center; align-items: center;
+        }
+        .popup-box {
+            background: linear-gradient(180deg, #2b2b2b, #1a1a1a);
+            border: 3px solid;
+            border-radius: 10px; padding: 30px; width: 400px; text-align: center;
+            color: white; box-shadow: 0 0 20px rgba(0,0,0,0.8);
+        }
+        .popup-title { font-size: 28px; font-weight: bold; margin-bottom: 10px; }
+        .popup-desc { font-size: 16px; margin-bottom: 20px; line-height: 1.5; }
+        .btn-close {
+            background: white; color: black; border: none; padding: 10px 20px;
+            font-weight: bold; border-radius: 5px; cursor: pointer;
+        }
+        .btn-close:hover { background: #ddd; }
+
+    </style>
+</head>
+<body>
+
+    <div id="background" style="background-image: url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80');"></div>
+
+    <div id="title-bar">
+        <h1>Beach Watchers</h1>
+        <p>Coastal Safety Sim - Operator Mode</p>
+    </div>
+
+    <div id="status-panel" class="panel">
+        <h3>Status Info</h3>
+        <div style="font-size: 14px; line-height: 1.5;">
+            Tanggal: Hari Ini<br>
+            Waktu: <span id="clock">14:38</span><br>
+            Lokasi: Bayview Beach
+        </div>
+    </div>
+
+    <div id="sensor-panel" class="panel">
+        <h3>Panel Sensor (i)</h3>
+        <div class="sensor-item">
+            <label>Suhu Laut: <span id="valSuhu">26</span>°C</label>
+            <input type="range" id="sliderSuhu" min="0" max="40" value="26">
+        </div>
+        <div class="sensor-item">
+            <label>Gelombang: <span id="valGelombang">0.6</span>m</label>
+            <input type="range" id="sliderGelombang" min="0.0" max="5.0" step="0.1" value="0.6">
+        </div>
+        <div class="sensor-item">
+            <label>Ketebalan Es: <span id="valEs">0</span>cm</label>
+            <input type="range" id="sliderEs" min="0" max="50" value="0">
+        </div>
+    </div>
+
+    <div id="action-panel" class="panel">
+        <h3 style="text-align: center; border-bottom: none; background: transparent;">Panel Keputusan</h3>
+        <button class="action-btn" onclick="cekKeputusan('NORMAL')">[ NORMAL ]</button>
+        <button class="action-btn" onclick="cekKeputusan('WASPADA')">[ WASPADA ]</button>
+        <button class="action-btn btn-red" onclick="cekKeputusan('AWAS')">[ AWAS ]</button>
+    </div>
+
+    <div id="alerts-panel" class="panel">
+        <h3>Alerts / Laporan Kejadian</h3>
+        <div id="logArea">
+            <div class="log-entry" style="color: #ccc;">[Sistem]: Memantau pergerakan pesisir...</div>
+        </div>
+    </div>
+
+    <div id="popup-overlay">
+        <div class="popup-box" id="popup-box">
+            <div class="popup-title" id="popup-title">BERHASIL!</div>
+            <div class="popup-desc" id="popup-desc">Deskripsi akibat dari keputusan.</div>
+            <button class="btn-close" onclick="tutupPopup()">Tutup Peringatan</button>
+        </div>
+    </div>
+
+    <script>
+        const sliderSuhu = document.getElementById('sliderSuhu');
+        const sliderGelombang = document.getElementById('sliderGelombang');
+        const sliderEs = document.getElementById('sliderEs');
+        
+        const valSuhu = document.getElementById('valSuhu');
+        const valGelombang = document.getElementById('valGelombang');
+        const valEs = document.getElementById('valEs');
+        
+        const background = document.getElementById('background');
+        const logArea = document.getElementById('logArea');
+        const popupOverlay = document.getElementById('popup-overlay');
+        const popupBox = document.getElementById('popup-box');
+        const popupTitle = document.getElementById('popup-title');
+        const popupDesc = document.getElementById('popup-desc');
+
+        function updateSensors() {
+            valSuhu.innerText = sliderSuhu.value;
+            valGelombang.innerText = parseFloat(sliderGelombang.value).toFixed(1);
+            valEs.innerText = sliderEs.value;
+            ubahLatarBelakang();
+        }
+
+        sliderSuhu.addEventListener('input', updateSensors);
+        sliderGelombang.addEventListener('input', updateSensors);
+        sliderEs.addEventListener('input', updateSensors);
+
+        function getStatusSebenarnya() {
+            let s = parseInt(sliderSuhu.value);
+            let g = parseFloat(sliderGelombang.value);
+            let e = parseInt(sliderEs.value);
+
+            if (g > 2.5 || s < 15 || e > 0) return 'AWAS';
+            if (g <= 1.0 && s >= 24 && e === 0) return 'NORMAL';
+            return 'WASPADA';
+        }
+
+        function ubahLatarBelakang() {
+            let status = getStatusSebenarnya();
+            if (status === 'AWAS') {
+                background.style.backgroundImage = "url('https://images.unsplash.com/photo-1527482797697-8795b05a13fe?auto=format&fit=crop&w=1920&q=80')";
+            } else if (status === 'WASPADA') {
+                background.style.backgroundImage = "url('https://images.unsplash.com/photo-1509803874385-db7c23652552?auto=format&fit=crop&w=1920&q=80')";
+            } else {
+                background.style.backgroundImage = "url('https://images.unsplash.com/photo-1507525428034-b723cf961d3e?auto=format&fit=crop&w=1920&q=80')";
+            }
+        }
+
+        function cekKeputusan(pilihanUser) {
+            let statusAsli = getStatusSebenarnya();
+            let waktu = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+            let isBenar = (pilihanUser === statusAsli);
+            
+            let akibat = "";
+            let warnaBorder = "";
+
+            // LOGIKA KONSEKUENSI KEJADIAN
+            if (isBenar) {
+                akibat = "Tindakan pencegahan tepat sasaran. <b>0 Korban Jiwa</b>. Operasional pantai berjalan aman.";
+                warnaBorder = "#51cf66"; // Hijau
+                popupTitle.innerText = "MISI BERHASIL!";
+                popupTitle.style.color = "#51cf66";
+            } else {
+                warnaBorder = "#ff6b6b"; // Merah
+                popupTitle.innerText = "MISI GAGAL!";
+                popupTitle.style.color = "#ff6b6b";
+
+                // Menentukan skenario fatal berdasarkan selisih kondisi
+                if (statusAsli === 'AWAS' && pilihanUser === 'NORMAL') {
+                    akibat = "SANGAT FATAL! Anda mengabaikan kondisi ekstrem. <b>12 perenang terseret arus ombak dan 3 kapal nelayan karam.</b>";
+                } else if (statusAsli === 'AWAS' && pilihanUser === 'WASPADA') {
+                    akibat = "Kurang antisipasi! Pertolongan terlambat disiagakan. <b>5 pengunjung mengalami hipotermia/cedera.</b>";
+                } else if (statusAsli === 'WASPADA' && pilihanUser === 'NORMAL') {
+                    akibat = "Lengah! Perubahan cuaca menyebabkan kepanikan di bibir pantai. <b>2 anak kecil terpisah dari orang tuanya.</b>";
+                } else if ((statusAsli === 'NORMAL' || statusAsli === 'WASPADA') && pilihanUser === 'AWAS') {
+                    akibat = "ALARM PALSU! Anda memicu evakuasi darurat tanpa alasan yang jelas. <b>Kerugian ekonomi karena turis panik dan pergi.</b>";
+                } else {
+                    akibat = "Prosedur salah! Evaluasi kembali pembacaan instrumen cuaca Anda.";
+                }
+            }
+
+            // Menampilkan Pop-Up
+            popupDesc.innerHTML = akibat;
+            popupBox.style.borderColor = warnaBorder;
+            popupOverlay.style.display = "flex";
+
+            // Mencatat ke Log (Sidebar Kanan)
+            let warnaLog = isBenar ? 'log-benar' : 'log-salah';
+            let logJudul = isBenar ? 'SUKSES' : 'INSIDEN';
+            let logBaru = `<div class="log-entry ${warnaLog}"><b>[${waktu}] - ${logJudul}</b><br>Keputusan: ${pilihanUser}<br>↳ <i>${akibat}</i></div>`;
+            
+            logArea.insertAdjacentHTML('afterbegin', logBaru);
+        }
+
+        function tutupPopup() {
+            popupOverlay.style.display = "none";
+        }
+    </script>
+</body>
+</html>

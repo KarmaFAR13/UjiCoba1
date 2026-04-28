@@ -1,0 +1,412 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Media Interaktif Eliminasi SPLDV</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            color: #333;
+            height: 100vh; 
+            margin: 0;
+            overflow: hidden; 
+            display: flex;
+            justify-content: center;
+            align-items: center; 
+        }
+
+        .container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 750px;
+            padding: 25px 30px; 
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+            position: relative;
+        }
+
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin: 0 0 15px 0;
+            font-size: 20px;
+            font-weight: 600;
+            border-bottom: 2px solid #eef2f5;
+            padding-bottom: 10px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 16px;
+            color: #34495e;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .card-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .flex-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .flex-row:last-child { margin-bottom: 0; }
+
+        input[type="number"], input[type="text"] {
+            width: 60px;
+            padding: 6px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 15px;
+            font-family: 'Poppins', sans-serif;
+            transition: border-color 0.3s;
+        }
+        
+        input[type="text"] { width: 50px; text-transform: lowercase; font-style: italic; }
+        input:focus { border-color: #3498db; outline: none; }
+
+        select {
+            padding: 8px;
+            border-radius: 6px;
+            border: 2px solid #dee2e6;
+            font-family: 'Poppins', sans-serif;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        /* Tombol */
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary { background: #3498db; color: white; box-shadow: 0 4px 10px rgba(52, 152, 219, 0.3); }
+        .btn-primary:hover { background: #2980b9; }
+        .btn-success { background: #2ecc71; color: white; box-shadow: 0 4px 10px rgba(46, 204, 113, 0.3); }
+        .btn-success:hover { background: #27ae60; }
+        .btn-secondary { background: #fff; color: #7f8c8d; border: 2px solid #bdc3c7; }
+        .btn-secondary:hover { background: #f8f9fa; color: #34495e; border-color: #95a5a6; }
+
+        /* Notifikasi Feedback */
+        .feedback {
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            font-weight: 600;
+            font-size: 14px;
+            display: none;
+            margin-top: 15px;
+        }
+        .feedback.success { background: #d5f5e3; color: #27ae60; border: 1px solid #2ecc71; }
+        .feedback.error { background: #fadbd8; color: #c0392b; border: 1px solid #e74c3c; }
+
+        .animate-slide-in { animation: slideIn 0.4s ease-out forwards; }
+        @keyframes slideIn {
+            0% { opacity: 0; transform: scale(0.95); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        /* TAMPILAN MATEMATIKA (Tahap 3) */
+        .math-card {
+            background: #fff;
+            padding: 15px;
+            border-radius: 10px;
+            border-left: 5px solid #2ecc71;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            font-family: 'Fira Code', monospace;
+            font-size: 15px;
+        }
+        table.math-table { margin: 0 auto; border-collapse: collapse; }
+        table.math-table td { padding: 3px 2px; vertical-align: bottom; }
+        .td-num { text-align: right; font-weight: 500; }
+        .td-var { text-align: left; font-style: italic; color: #2c3e50; }
+        .td-sign { text-align: center; padding: 0 8px; color: #7f8c8d; }
+        .td-mult { text-align: center; padding: 0 15px; color: #95a5a6; font-size: 13px;}
+        .td-minus { padding-left: 8px; font-weight: bold; font-size: 18px; }
+        .line-bottom { border-bottom: 2px solid #2c3e50; padding-bottom: 2px; }
+        .final-step { text-align: center; margin-top: 10px; font-size: 16px; background: #f8f9fa; padding: 10px; border-radius: 6px; }
+
+        /* Sembunyikan halaman lain */
+        #step-2, #step-3 { display: none; }
+        
+        .locked-eq {
+            font-size: 18px;
+            font-family: 'Fira Code', monospace;
+            text-align: center;
+            letter-spacing: 1px;
+            margin: 5px 0;
+            color: #2c3e50;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Kalkulator Pembelajaran SPLDV</h2>
+
+    <div id="step-1" class="animate-slide-in">
+        <div class="section-title">Tahap 1: Masukkan Variabel & Persamaan</div>
+        
+        <div class="card-box flex-row">
+            Gunakan Huruf: 
+            <input type="text" id="v1" value="x" maxlength="1" oninput="updateVars()"> dan 
+            <input type="text" id="v2" value="y" maxlength="1" oninput="updateVars()">
+        </div>
+
+        <div class="card-box">
+            <div class="flex-row">
+                <strong>Pers 1:</strong>
+                <input type="number" id="a1" placeholder="..."> <i class="lbl-v1">x</i> + 
+                <input type="number" id="b1" placeholder="..."> <i class="lbl-v2">y</i> = 
+                <input type="number" id="c1" placeholder="...">
+            </div>
+            <div class="flex-row">
+                <strong>Pers 2:</strong>
+                <input type="number" id="a2" placeholder="..."> <i class="lbl-v1">x</i> + 
+                <input type="number" id="b2" placeholder="..."> <i class="lbl-v2">y</i> = 
+                <input type="number" id="c2" placeholder="...">
+            </div>
+        </div>
+
+        <button class="btn-primary" onclick="simpanModel()">Simpan Model Matematika</button>
+        <div id="feedback-1" class="feedback"></div>
+        <button id="btn-lanjut" class="btn-success" style="display:none;" onclick="goToStep(2)">Lanjut Tentukan Pengali ➝</button>
+    </div>
+
+    <div id="step-2">
+        <div class="section-title">Tahap 2: Tentukan Target & Pengali Eliminasi</div>
+        
+        <div class="card-box">
+            <div class="locked-eq" id="lock-eq1"></div>
+            <div class="locked-eq" id="lock-eq2"></div>
+        </div>
+
+        <div class="card-box flex-row" style="justify-content: space-around;">
+            <div>
+                <strong>Eliminasi:</strong><br>
+                <select id="targetVar" style="margin-top: 5px;">
+                    <option value="v2">Nilai <span class="lbl-v2">y</span></option>
+                    <option value="v1">Nilai <span class="lbl-v1">x</span></option>
+                </select>
+            </div>
+            <div>
+                Pengali Pers 1: <input type="number" id="m1" placeholder="×"><br>
+                <div style="margin-top:5px;">Pengali Pers 2: <input type="number" id="m2" placeholder="×"></div>
+            </div>
+        </div>
+
+        <div id="feedback-2" class="feedback error">⚠️ Pengali salah! Variabel tidak akan tereliminasi.</div>
+
+        <button class="btn-primary" onclick="prosesEliminasi()">Proses Hitung</button>
+        <button class="btn-secondary" onclick="goToStep(1)">⟵ Kembali Ubah Persamaan</button>
+    </div>
+
+    <div id="step-3">
+        <div class="section-title">Tahap 3: Proses Penyelesaian</div>
+        
+        <div id="resultArea"></div>
+
+        <button class="btn-secondary" onclick="goToStep(2)">⟵ Coba Eliminasi Variabel Lain</button>
+        <button class="btn-primary" onclick="location.reload()" style="margin-top: 5px;">Mulai Soal Baru</button>
+    </div>
+
+</div>
+
+<script>
+    // Menyimpan soal secara dinamis (menggantikan KUNCI statis)
+    let SOAL = { a1: 0, b1: 0, c1: 0, a2: 0, b2: 0, c2: 0 };
+
+    // Fungsi update huruf variabel secara real-time
+    function updateVars() {
+        const v1 = document.getElementById('v1').value || 'x';
+        const v2 = document.getElementById('v2').value || 'y';
+        document.querySelectorAll('.lbl-v1').forEach(el => el.innerText = v1);
+        document.querySelectorAll('.lbl-v2').forEach(el => el.innerText = v2);
+    }
+
+    // Navigasi antar halaman
+    function goToStep(stepNumber) {
+        document.getElementById('step-1').style.display = 'none';
+        document.getElementById('step-2').style.display = 'none';
+        document.getElementById('step-3').style.display = 'none';
+        
+        const target = document.getElementById('step-' + stepNumber);
+        target.style.display = 'block';
+        
+        // Reset animasi
+        target.classList.remove('animate-slide-in');
+        void target.offsetWidth; 
+        target.classList.add('animate-slide-in');
+
+        // Jika ke step 2, update tampilan persamaan terkunci secara dinamis
+        if(stepNumber === 2) {
+            const v1 = document.getElementById('v1').value || 'x';
+            const v2 = document.getElementById('v2').value || 'y';
+            
+            // Format persamaan agar tampil rapi (menangani plus/minus)
+            document.getElementById('lock-eq1').innerHTML = `${SOAL.a1}<i>${v1}</i> ${formatSign(SOAL.b1)} ${formatAbs(SOAL.b1)}<i>${v2}</i> = ${SOAL.c1}`;
+            document.getElementById('lock-eq2').innerHTML = `${SOAL.a2}<i>${v1}</i> ${formatSign(SOAL.b2)} ${formatAbs(SOAL.b2)}<i>${v2}</i> = ${SOAL.c2}`;
+            
+            // Update dropdown target
+            document.getElementById('targetVar').innerHTML = `
+                <option value="v2" selected>Nilai ${v2}</option>
+                <option value="v1">Nilai ${v1}</option>
+            `;
+        }
+    }
+
+    // Menyimpan soal dari input user (Tahap 1)
+    function simpanModel() {
+        const a1 = parseFloat(document.getElementById('a1').value);
+        const b1 = parseFloat(document.getElementById('b1').value);
+        const c1 = parseFloat(document.getElementById('c1').value);
+        const a2 = parseFloat(document.getElementById('a2').value);
+        const b2 = parseFloat(document.getElementById('b2').value);
+        const c2 = parseFloat(document.getElementById('c2').value);
+
+        const fb = document.getElementById('feedback-1');
+        const btnLanjut = document.getElementById('btn-lanjut');
+
+        // Validasi apakah semua kotak sudah diisi dengan angka
+        if (!isNaN(a1) && !isNaN(b1) && !isNaN(c1) && !isNaN(a2) && !isNaN(b2) && !isNaN(c2)) {
+            SOAL = { a1, b1, c1, a2, b2, c2 };
+            fb.innerHTML = "✅ Persamaan berhasil disimpan!";
+            fb.className = "feedback success";
+            fb.style.display = "block";
+            btnLanjut.style.display = "block";
+        } else {
+            fb.innerHTML = "⚠️ Lengkapi semua kotak dengan angka!";
+            fb.className = "feedback error";
+            fb.style.display = "block";
+            btnLanjut.style.display = "none";
+        }
+    }
+
+    function formatSign(num) { return num < 0 ? '&minus;' : '+'; }
+    function formatAbs(num) { return Math.abs(num); }
+
+    // Memproses Hitungan Tahap 2 ke Tahap 3
+    function prosesEliminasi() {
+        const m1 = parseFloat(document.getElementById('m1').value);
+        const m2 = parseFloat(document.getElementById('m2').value);
+        const target = document.getElementById('targetVar').value; 
+        const fb2 = document.getElementById('feedback-2');
+
+        if(isNaN(m1) || isNaN(m2)) {
+            fb2.innerHTML = "⚠️ Harap masukkan angka pengali!";
+            fb2.style.display = "block";
+            return;
+        }
+
+        // Kalikan koefisien dengan pengali
+        const na1 = SOAL.a1 * m1, nb1 = SOAL.b1 * m1, nc1 = SOAL.c1 * m1;
+        const na2 = SOAL.a2 * m2, nb2 = SOAL.b2 * m2, nc2 = SOAL.c2 * m2;
+
+        let isEliminated = false;
+        let operator = '-'; 
+        let resA, resB, resC;
+
+        // Mengecek apakah koefisien sama (untuk dikurang) atau berlawanan tanda (untuk ditambah)
+        if (target === 'v1') {
+            if (na1 === na2) { isEliminated = true; operator = '-'; }
+            else if (na1 === -na2) { isEliminated = true; operator = '+'; }
+        } else if (target === 'v2') {
+            if (nb1 === nb2) { isEliminated = true; operator = '-'; }
+            else if (nb1 === -nb2) { isEliminated = true; operator = '+'; }
+        }
+
+        if (!isEliminated) {
+            fb2.innerHTML = "⚠️ Salah pengali! Angka koefisien variabel target tidak sama atau berlawanan tanda.";
+            fb2.style.display = "block";
+            return;
+        }
+
+        // Hitung hasil eliminasi tergantung operator
+        if (operator === '-') {
+            resA = na1 - na2;
+            resB = nb1 - nb2;
+            resC = nc1 - nc2;
+        } else {
+            resA = na1 + na2;
+            resB = nb1 + nb2;
+            resC = nc1 + nc2;
+        }
+
+        fb2.style.display = "none";
+
+        // Generate Tampilan Hasil Tahap 3
+        const v1 = document.getElementById('v1').value || 'x';
+        const v2 = document.getElementById('v2').value || 'y';
+
+        let html = `<div class="math-card"><table class="math-table">`;
+
+        // Baris 1
+        html += `<tr>`;
+        html += `<td class="td-num">${SOAL.a1}</td><td class="td-var">${v1}</td> <td class="td-sign">${formatSign(SOAL.b1)}</td> <td class="td-num">${formatAbs(SOAL.b1)}</td><td class="td-var">${v2}</td> <td class="td-sign">=</td> <td class="td-num" style="text-align:left;">${SOAL.c1}</td>`;
+        html += `<td class="td-mult">| &times; ${m1} |</td>`;
+        html += `<td class="td-num">${na1}</td><td class="td-var">${v1}</td> <td class="td-sign">${formatSign(nb1)}</td> <td class="td-num">${formatAbs(nb1)}</td><td class="td-var">${v2}</td> <td class="td-sign">=</td> <td class="td-num" style="text-align:left;">${nc1}</td>`;
+        html += `<td></td></tr>`;
+
+        // Baris 2
+        html += `<tr>`;
+        html += `<td class="td-num">${SOAL.a2}</td><td class="td-var">${v1}</td> <td class="td-sign">${formatSign(SOAL.b2)}</td> <td class="td-num">${formatAbs(SOAL.b2)}</td><td class="td-var">${v2}</td> <td class="td-sign">=</td> <td class="td-num" style="text-align:left;">${SOAL.c2}</td>`;
+        html += `<td class="td-mult">| &times; ${m2} |</td>`;
+        html += `<td class="td-num line-bottom">${na2}</td><td class="td-var line-bottom">${v1}</td> <td class="td-sign line-bottom">${formatSign(nb2)}</td> <td class="td-num line-bottom">${formatAbs(nb2)}</td><td class="td-var line-bottom">${v2}</td> <td class="td-sign line-bottom">=</td> <td class="td-num line-bottom" style="text-align:left;">${nc2}</td>`;
+        html += `<td class="td-minus">${operator === '-' ? '&minus;' : '+'}</td></tr>`; // Operator dinamis
+
+        // Baris 3 (Hasil Pengurangan/Penjumlahan)
+        html += `<tr><td colspan="8"></td>`; 
+        if (target === 'v2') {
+            html += `<td class="td-num">${resA}</td><td class="td-var">${v1}</td> <td></td> <td></td><td></td> <td class="td-sign">=</td> <td class="td-num" style="text-align:left;">${resC}</td> <td></td>`;
+        } else {
+            html += `<td></td><td></td> <td></td> <td class="td-num">${resB}</td><td class="td-var">${v2}</td> <td class="td-sign">=</td> <td class="td-num" style="text-align:left;">${resC}</td> <td></td>`;
+        }
+        html += `</tr></table>`;
+
+        // Hasil Akhir (Pembagian)
+        if (target === 'v2') {
+            if (resA === 1) {
+                html += `<div class="final-step">${v1} = <strong>${resC}</strong></div>`;
+            } else {
+                html += `<div class="final-step">${v1} = <sup>${resC}</sup>/<sub>${resA}</sub> = <strong>${Number.isInteger(resC/resA) ? (resC / resA) : (resC/resA).toFixed(2)}</strong></div>`;
+            }
+        } else if (target === 'v1') {
+            if (resB === 1) {
+                html += `<div class="final-step">${v2} = <strong>${resC}</strong></div>`;
+            } else {
+                html += `<div class="final-step">${v2} = <sup>${resC}</sup>/<sub>${resB}</sub> = <strong>${Number.isInteger(resC/resB) ? (resC / resB) : (resC/resB).toFixed(2)}</strong></div>`;
+            }
+        }
+
+        html += `</div>`;
+        document.getElementById('resultArea').innerHTML = html;
+        goToStep(3);
+    }
+</script>
+
+</body>
+</html>

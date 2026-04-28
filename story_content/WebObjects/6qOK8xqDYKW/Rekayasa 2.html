@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GA-707: High-Fidelity Cockpit</title>
+    <style>
+        * { box-sizing: border-box; font-family: 'Orbitron', 'Segoe UI', sans-serif; }
+        body { margin: 0; padding: 0; background-color: #000; display: flex; justify-content: center; align-items: center; min-height: 100vh; overflow: hidden; }
+
+        /* === DYNAMIC MEDIA BACKGROUND === */
+        #media-container { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -100; background-color: #000; }
+        
+        #bg-image, #bg-video { 
+            width: 100%; height: 100%; object-fit: cover; opacity: 0.6; 
+            position: absolute; top: 0; left: 0; transition: opacity 0.5s ease-in-out; 
+        }
+        #bg-video { display: none; }
+
+        /* === HUD CONTAINER === */
+        .game-container {
+            width: 950px; height: 620px; 
+            background: linear-gradient(135deg, rgba(20, 25, 30, 0.8), rgba(5, 10, 15, 0.95));
+            border: 3px solid #334; border-radius: 15px;
+            position: relative; overflow: hidden; display: flex; flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.8), inset 0 0 20px rgba(0, 242, 255, 0.1);
+            backdrop-filter: blur(5px);
+        }
+
+        .header { background: linear-gradient(to bottom, #111, #000); padding: 15px 20px; border-bottom: 2px solid #00f2ff; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.5); }
+        .warning-text { color: #ff003c; font-size: 14px; font-weight: bold; letter-spacing: 2px; text-shadow: 0 0 10px #ff003c; }
+        
+        .bars-container { display: flex; gap: 20px; width: 60%; }
+        .bar-wrapper { flex: 1; height: 25px; background: #0a0a0a; border: 1px solid #333; border-radius: 15px; position: relative; overflow: hidden; box-shadow: inset 0 2px 5px rgba(0,0,0,0.8); }
+        .bar-fill { height: 100%; width: 0%; transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1); box-shadow: 0 0 10px currentColor; }
+        .bar-text { position: absolute; width: 100%; text-align: center; font-size: 11px; color: #fff; line-height: 25px; font-weight: bold; text-shadow: 1px 1px 2px #000; }
+
+        .main-area { flex: 1; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; position: relative; }
+        
+        .pilot-box { background: rgba(0,0,0,0.7); border-left: 4px solid #00f2ff; padding: 15px 25px; color: #e0f7fa; width: 80%; font-size: 16px; font-weight: 500; border-radius: 0 10px 10px 0; margin-bottom: 20px; text-shadow: 0 2px 4px rgba(0,0,0,0.5); z-index: 10;}
+
+        /* === KARAKTER PILOT === */
+        #avatar-pilot { 
+            width: 150px; 
+            height: 150px; 
+            object-fit: contain; 
+            filter: drop-shadow(0 10px 15px rgba(0,0,0,0.8)); 
+            z-index: 10; 
+            margin-bottom: 10px;
+        }
+
+        /* === PREMIUM CONTROL PANEL === */
+        .control-panel { 
+            background: linear-gradient(to top, #1a1a24, #2a2a35); 
+            padding: 20px 30px; display: flex; justify-content: center; align-items: center; gap: 80px; 
+            border-top: 4px solid #000; box-shadow: inset 0 10px 20px rgba(0,0,0,0.5); z-index: 40; 
+        }
+
+        .lever-group { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+        .lever-label { color: #8892b0; font-size: 12px; font-weight: bold; letter-spacing: 1px; text-shadow: 0 -1px 1px #000; }
+        
+        .lever-track { 
+            width: 40px; height: 150px; background: #050505; 
+            border-radius: 20px; position: relative; cursor: pointer;
+            box-shadow: inset 0 5px 15px rgba(0,0,0,0.9), inset 0 0 5px #000, 0 1px 1px rgba(255,255,255,0.1); 
+        }
+        
+        .lever-knob { 
+            width: 70px; height: 45px; 
+            background: linear-gradient(180deg, #99aab5 0%, #4f5b66 50%, #2b3238 100%);
+            border: 2px solid #1a1e24; border-radius: 12px; 
+            position: absolute; bottom: 0; left: -15px; 
+            transition: bottom 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.8), inset 0 2px 2px rgba(255,255,255,0.4), inset 0 -2px 5px rgba(0,0,0,0.5);
+            display: flex; justify-content: center; align-items: center;
+        }
+        .lever-knob::before { content: ''; width: 80%; height: 4px; background: rgba(0,0,0,0.4); box-shadow: 0 8px 0 rgba(0,0,0,0.4), 0 -8px 0 rgba(0,0,0,0.4); }
+
+        .val-display { background: #000; color: #0f0; font-family: monospace; font-size: 20px; padding: 5px 15px; border-radius: 5px; border: 1px solid #333; box-shadow: inset 0 0 10px rgba(0,255,0,0.2); }
+
+        .btn-sync { 
+            background: linear-gradient(to bottom, #ff3333, #aa0000); 
+            color: #fff; border: 1px solid #550000; padding: 20px 40px; 
+            font-size: 20px; font-weight: 900; letter-spacing: 2px; border-radius: 10px; cursor: pointer; 
+            box-shadow: 0 8px 0 #660000, 0 15px 20px rgba(0,0,0,0.6), inset 0 2px 2px rgba(255,255,255,0.4); 
+            text-transform: uppercase; transition: all 0.1s; text-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+        .btn-sync:active { transform: translateY(8px); box-shadow: 0 0 0 #660000, 0 5px 5px rgba(0,0,0,0.6), inset 0 2px 2px rgba(255,255,255,0.2); background: linear-gradient(to bottom, #cc0000, #880000); }
+
+        /* REPORT MODAL */
+        #finalReport {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%) scale(0);
+            width: 500px; background: linear-gradient(135deg, rgba(10,10,10,0.95), rgba(0,0,0,0.98)); 
+            border: 2px solid #555; border-radius: 15px; padding: 40px; z-index: 100; text-align: center; color: #fff; 
+            transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275); box-shadow: 0 0 100px rgba(0,0,0,0.8);
+        }
+        #finalReport.show { transform: translate(-50%, -50%) scale(1); }
+
+        @keyframes shake { 0% { transform: translate(3px, 3px) rotate(1deg); } 50% { transform: translate(-3px, -3px) rotate(-1deg); } 100% { transform: translate(3px, -3px) rotate(0deg); } }
+    </style>
+</head>
+<body>
+
+<div id="media-container">
+    <img id="bg-image" src="gambar_normal.jpg" alt="Awan Normal">
+    <video loop muted playsinline id="bg-video">
+        <source id="video-src" src="" type="video/mp4">
+    </video>
+</div>
+
+<div class="game-container" id="hud">
+    <div class="header">
+        <div class="warning-text">⚠️ MANUAL OVERRIDE ENGAGED</div>
+        <div class="bars-container">
+            <div class="bar-wrapper"><div class="bar-fill" id="b1" style="background:#00f2ff; color:#00f2ff;"></div><div class="bar-text" id="t1">SYNC A (X+Y): 0</div></div>
+            <div class="bar-wrapper"><div class="bar-fill" id="b2" style="background:#ff9900; color:#ff9900;"></div><div class="bar-text" id="t2">SYNC B (X-Y): 0</div></div>
+        </div>
+    </div>
+
+    <div class="main-area">
+        <div class="pilot-box" id="dialog">"Kapten! Waktu kita sempit! Masukkan Kecepatan Mesin dan Kecepatan Angin lalu tekan tuas Execute!"</div>
+        
+        <img id="avatar-pilot" src="karakter_pilot.png" alt="Karakter Pilot">
+
+        <div id="finalReport">
+            <h1 id="repTitle" style="font-size: 32px; margin-bottom: 10px;">STATUS</h1>
+            <p id="repMsg" style="color: #bbb; font-size: 16px; margin-bottom: 20px; line-height: 1.5;"></p>
+            <h2 id="repVictims" style="font-size: 24px; color: #fff; margin-bottom: 30px;">Kurban: -</h2>
+            <button class="btn-sync" style="font-size: 16px; padding: 15px 30px;" onclick="location.reload()">REBOOT SYSTEM</button>
+        </div>
+    </div>
+
+    <div class="control-panel">
+        <div class="lever-group">
+            <div class="lever-label">ENGINE THRUST (X)</div>
+            <div class="lever-track" onclick="adjust('x')"><div class="lever-knob" id="kX"></div></div>
+            <div class="val-display" id="vX">0</div>
+        </div>
+
+        <button class="btn-sync" onclick="syncProcess()">EXECUTE SYNC</button>
+
+        <div class="lever-group">
+            <div class="lever-label">WIND FORCE (Y)</div>
+            <div class="lever-track" onclick="adjust('y')"><div class="lever-knob" id="kY"></div></div>
+            <div class="val-display" id="vY" style="color:#ff9900;">0</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // === SISTEM NAVIGASI & MEDIA ===
+    let x = 0; let y = 0;
+    const bgImage = document.getElementById('bg-image');
+    const bgVideo = document.getElementById('bg-video');
+    const videoSrc = document.getElementById('video-src');
+
+    function setMediaState(state, filename) {
+        if (state === 'image') {
+            bgVideo.style.display = 'none';
+            bgVideo.pause();
+            bgImage.style.display = 'block';
+            bgImage.src = filename;
+        } else if (state === 'video') {
+            bgImage.style.display = 'none';
+            bgVideo.style.display = 'block';
+            videoSrc.src = filename;
+            bgVideo.load();
+            bgVideo.play();
+        }
+    }
+
+    function adjust(type) {
+        if(type === 'x') { 
+            x += 50; if(x > 400) x = 0; 
+            document.getElementById('kX').style.bottom = (x/400*105)+'px'; 
+            document.getElementById('vX').innerText = x;
+        } else { 
+            y += 50; if(y > 200) y = 0; 
+            document.getElementById('kY').style.bottom = (y/200*105)+'px'; 
+            document.getElementById('vY').innerText = y;
+        }
+        
+        let s1 = x + y; let s2 = x - y;
+        document.getElementById('t1').innerText = "SYNC A: " + s1 + " / 350";
+        document.getElementById('t2').innerText = "SYNC B: " + s2 + " / 150";
+        document.getElementById('b1').style.width = Math.min(100, (s1/350*100)) + "%";
+        document.getElementById('b2').style.width = Math.min(100, (s2/150*100)) + "%";
+    }
+
+    function syncProcess() {
+        let s1 = x + y; let s2 = x - y;
+
+        if(s1 === 350 && s2 === 150) {
+            setMediaState('image', 'gambar_normal.jpg'); 
+            showReport("SAFE LANDING", "Navigasi berhasil dipulihkan. Kita mendarat dengan selamat, Kapten!", "✈️", 0, "#00f2ff");
+        } 
+        else if(s1 > 400 || s2 < 0) {
+            setMediaState('video', 'video_ledakan.mp4');
+            document.getElementById('hud').style.animation = "shake 0.1s infinite";
+            showReport("CATASTROPHIC FAILURE", "Tekanan mesin jauh melebihi batas aman. Pesawat meledak di udara!", "💥", 200, "#ff003c");
+        }
+        else if(s1 < 200) {
+            setMediaState('video', 'video_jatuh.mp4');
+            showReport("STALL DETECTED", "Kehilangan daya angkat. Pesawat jatuh menabrak lautan.", "🌊", 200, "#ff8800");
+        }
+        else {
+            setMediaState('video', 'video_panik.mp4');
+            document.getElementById('dialog').innerText = "DATA TIDAK SINKRON! SISTEM HIDROLIK LEPAS KENDALI!";
+            document.getElementById('dialog').style.color = "#ff003c";
+            document.getElementById('dialog').style.borderLeftColor = "#ff003c";
+            
+            setTimeout(() => { 
+                setMediaState('video', 'video_jatuh.mp4');
+                showReport("SYSTEM OVERLOAD", "Terlalu lama merespons badai. Navigasi hancur total.", "💀", 200, "#ff0000");
+            }, 3000);
+        }
+    }
+
+    function showReport(title, msg, icon, victims, color) {
+        document.getElementById('repTitle').innerText = title;
+        document.getElementById('repTitle').style.color = color;
+        document.getElementById('repMsg').innerText = msg;
+        document.getElementById('repVictims').innerText = "KORBAN: " + victims + " JIWA";
+        
+        // Hapus icon lama jika ada, lalu tambah yang baru
+        const oldIcon = document.getElementById('reportIcon');
+        if(oldIcon) oldIcon.remove();
+        document.getElementById('repTitle').insertAdjacentHTML('beforebegin', `<div id="reportIcon" style="font-size: 70px; margin-bottom:10px;">${icon}</div>`);
+        
+        document.getElementById('finalReport').classList.add('show');
+    }
+</script>
+</body>
+</html>

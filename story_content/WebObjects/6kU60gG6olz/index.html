@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Kalkulator SPLDV Metode Campuran</title>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@500&family=Poppins:wght@400;600&display=swap" rel="stylesheet">
+
+    <style>
+        * { box-sizing: border-box; }
+        
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: linear-gradient(135deg, #fdfbfb 0%, #ebedee 100%);
+            color: #333;
+            min-height: 100vh; 
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center; 
+            padding: 20px;
+        }
+
+        .container {
+            background: #ffffff;
+            width: 100%;
+            max-width: 800px;
+            padding: 25px 30px; 
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+        }
+
+        h2 {
+            text-align: center;
+            color: #2c3e50;
+            margin: 0 0 15px 0;
+            font-size: 20px;
+            border-bottom: 2px solid #eef2f5;
+            padding-bottom: 10px;
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 16px;
+            color: #34495e;
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+
+        .card-box {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #e9ecef;
+        }
+
+        .flex-row {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            flex-wrap: wrap;
+        }
+
+        input[type="number"], input[type="text"] {
+            width: 60px;
+            padding: 6px;
+            border: 2px solid #dee2e6;
+            border-radius: 6px;
+            text-align: center;
+            font-size: 15px;
+        }
+        
+        input[type="text"] { width: 50px; text-transform: lowercase; font-style: italic; }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: all 0.3s ease;
+        }
+        .btn-primary { background: #3498db; color: white; }
+        .btn-success { background: #2ecc71; color: white; }
+        .btn-secondary { background: #fff; color: #7f8c8d; border: 2px solid #bdc3c7; }
+
+        .feedback {
+            text-align: center;
+            padding: 10px;
+            border-radius: 6px;
+            display: none;
+            margin-top: 15px;
+        }
+        .success { background: #d5f5e3; color: #27ae60; }
+        .error { background: #fadbd8; color: #c0392b; }
+
+        .math-card {
+            background: #fff;
+            padding: 20px;
+            border-radius: 10px;
+            border-left: 5px solid #3498db;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            font-family: 'Fira Code', monospace;
+            margin-bottom: 20px;
+        }
+
+        .step-box {
+            margin-top: 15px;
+            padding: 10px;
+            background: #fcfcfc;
+            border: 1px dashed #ccc;
+        }
+
+        .highlight { color: #e67e22; font-weight: bold; }
+
+        #step-2, #step-3 { display: none; }
+        
+        .locked-eq { font-family: 'Fira Code', monospace; text-align: center; margin: 5px 0; }
+
+        table.math-table { margin: 0 auto; border-collapse: collapse; }
+        .line-bottom { border-bottom: 2px solid #333; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>Kalkulator SPLDV Metode Campuran</h2>
+
+    <div id="step-1">
+        <div class="section-title">Langkah 1: Masukkan Persamaan</div>
+        <div class="card-box flex-row">
+            Variabel: <input type="text" id="v1" value="x" maxlength="1"> dan 
+            <input type="text" id="v2" value="y" maxlength="1">
+        </div>
+        <div class="card-box">
+            <div class="flex-row">
+                <strong>(1)</strong> <input type="number" id="a1"> <span class="lbl-v1">x</span> + 
+                <input type="number" id="b1"> <span class="lbl-v2">y</span> = <input type="number" id="c1">
+            </div>
+            <div class="flex-row">
+                <strong>(2)</strong> <input type="number" id="a2"> <span class="lbl-v1">x</span> + 
+                <input type="number" id="b2"> <span class="lbl-v2">y</span> = <input type="number" id="c2">
+            </div>
+        </div>
+        <button class="btn-primary" onclick="simpanModel()">Simpan & Lanjut</button>
+        <div id="fb1" class="feedback"></div>
+    </div>
+
+    <div id="step-2">
+        <div class="section-title">Langkah 2: Eliminasi Salah Satu Variabel</div>
+        <div class="card-box">
+            <div class="locked-eq" id="le1"></div>
+            <div class="locked-eq" id="le2"></div>
+        </div>
+        <div class="card-box flex-row">
+            Hapus variabel: 
+            <select id="targetVar">
+                <option value="v1">x</option>
+                <option value="v2">y</option>
+            </select>
+            Pengali 1: <input type="number" id="m1">
+            Pengali 2: <input type="number" id="m2">
+        </div>
+        <button class="btn-primary" onclick="prosesHitung()">Proses Metode Campuran</button>
+        <div id="fb2" class="feedback error"></div>
+    </div>
+
+    <div id="step-3">
+        <div class="section-title">Langkah 3: Hasil Penyelesaian</div>
+        <div id="resultArea"></div>
+        <button class="btn-secondary" onclick="location.reload()">Reset Soal</button>
+    </div>
+</div>
+
+<script>
+    let SOAL = {};
+
+    function simpanModel() {
+        const data = {
+            a1: parseFloat(document.getElementById('a1').value),
+            b1: parseFloat(document.getElementById('b1').value),
+            c1: parseFloat(document.getElementById('c1').value),
+            a2: parseFloat(document.getElementById('a2').value),
+            b2: parseFloat(document.getElementById('b2').value),
+            c2: parseFloat(document.getElementById('c2').value),
+            v1: document.getElementById('v1').value || 'x',
+            v2: document.getElementById('v2').value || 'y'
+        };
+
+        if (Object.values(data).some(v => isNaN(v) && typeof v === 'number')) {
+            alert("Isi semua angka!"); return;
+        }
+
+        SOAL = data;
+        document.getElementById('le1').innerText = `${SOAL.a1}${SOAL.v1} + (${SOAL.b1}${SOAL.v2}) = ${SOAL.c1}`;
+        document.getElementById('le2').innerText = `${SOAL.a2}${SOAL.v1} + (${SOAL.b2}${SOAL.v2}) = ${SOAL.c2}`;
+        
+        document.getElementById('step-1').style.display = 'none';
+        document.getElementById('step-2').style.display = 'block';
+    }
+
+    function prosesHitung() {
+        const m1 = parseFloat(document.getElementById('m1').value);
+        const m2 = parseFloat(document.getElementById('m2').value);
+        const target = document.getElementById('targetVar').value;
+        
+        const na1 = SOAL.a1 * m1, nb1 = SOAL.b1 * m1, nc1 = SOAL.c1 * m1;
+        const na2 = SOAL.a2 * m2, nb2 = SOAL.b2 * m2, nc2 = SOAL.c2 * m2;
+
+        // Cek apakah eliminasi valid
+        let valid = false;
+        let op = '-';
+        if (target === 'v1' && na1 !== 0) {
+            if (na1 === na2) { valid = true; op = '-'; }
+            if (na1 === -na2) { valid = true; op = '+'; }
+        } else if (target === 'v2' && nb1 !== 0) {
+            if (nb1 === nb2) { valid = true; op = '-'; }
+            if (nb1 === -nb2) { valid = true; op = '+'; }
+        }
+
+        if (!valid) {
+            document.getElementById('fb2').style.display = 'block';
+            document.getElementById('fb2').innerText = "Koefisien target belum sama/berlawanan!";
+            return;
+        }
+
+        // Hitung variabel pertama (Eliminasi)
+        let varKetemu, nilaiKetemu, namaVarKetemu;
+        if (target === 'v1') { // Eliminasi X, cari Y
+            namaVarKetemu = SOAL.v2;
+            let resB = (op === '-') ? nb1 - nb2 : nb1 + nb2;
+            let resC = (op === '-') ? nc1 - nc2 : nc1 + nc2;
+            nilaiKetemu = resC / resB;
+            varKetemu = 'v2';
+        } else { // Eliminasi Y, cari X
+            namaVarKetemu = SOAL.v1;
+            let resA = (op === '-') ? na1 - na2 : na1 + na2;
+            let resC = (op === '-') ? nc1 - nc2 : nc1 + nc2;
+            nilaiKetemu = resC / resA;
+            varKetemu = 'v1';
+        }
+
+        // Substitusi (Gunakan Persamaan 1)
+        // Pers 1: a1(x) + b1(y) = c1
+        let nilaiKedua, namaVarKedua;
+        let langkahSub = "";
+        if (varKetemu === 'v2') { // Tadi ketemu Y, sekarang cari X
+            namaVarKedua = SOAL.v1;
+            // a1.x + b1.nilaiY = c1  => a1.x = c1 - (b1.nilaiY)
+            nilaiKedua = (SOAL.c1 - (SOAL.b1 * nilaiKetemu)) / SOAL.a1;
+            langkahSub = `${SOAL.a1}${SOAL.v1} + ${SOAL.b1}(${nilaiKetemu.toFixed(1)}) = ${SOAL.c1}`;
+        } else { // Tadi ketemu X, sekarang cari Y
+            namaVarKedua = SOAL.v2;
+            nilaiKedua = (SOAL.c1 - (SOAL.a1 * nilaiKetemu)) / SOAL.b1;
+            langkahSub = `${SOAL.a1}(${nilaiKetemu.toFixed(1)}) + ${SOAL.b1}${SOAL.v2} = ${SOAL.c1}`;
+        }
+
+        tampilkanHasil(namaVarKetemu, nilaiKetemu, namaVarKedua, nilaiKedua, langkahSub, op, m1, m2, na1, nb1, nc1, na2, nb2, nc2, target);
+    }
+
+    function tampilkanHasil(vKetemu, nKetemu, vKedua, nKedua, lSub, op, m1, m2, na1, nb1, nc1, na2, nb2, nc2, target) {
+        let html = `
+            <div class="math-card">
+                <strong>1. Langkah Eliminasi (Mencari ${vKetemu})</strong><br><br>
+                <table class="math-table">
+                    <tr><td>${SOAL.a1}${SOAL.v1} + ${SOAL.b1}${SOAL.v2} = ${SOAL.c1}</td><td> |&times;${m1}| </td><td>${na1}${SOAL.v1} + ${nb1}${SOAL.v2} = ${nc1}</td></tr>
+                    <tr class="line-bottom"><td>${SOAL.a2}${SOAL.v1} + ${SOAL.b2}${SOAL.v2} = ${SOAL.c2}</td><td> |&times;${m2}| </td><td>${na2}${SOAL.v1} + ${nb2}${SOAL.v2} = ${nc2}</td></tr>
+                </table>
+                <div style="text-align:right; margin-right:50px;">${op}</div>
+                <div style="text-align:center">Didapat <span class="highlight">${vKetemu} = ${nKetemu.toFixed(2)}</span></div>
+            </div>
+
+            <div class="math-card" style="border-left-color: #2ecc71">
+                <strong>2. Langkah Substitusi (Mencari ${vKedua})</strong><br><br>
+                Masukkan nilai ${vKetemu} ke Persamaan (1):<br>
+                ${lSub}<br>
+                Hasil: <span class="highlight">${vKedua} = ${nKedua.toFixed(2)}</span>
+            </div>
+
+            <div class="card-box" style="text-align:center; font-weight:bold; font-size:18px;">
+                HP: {${SOAL.v1}: ${SOAL.v1 === vKetemu ? nKetemu.toFixed(2) : nKedua.toFixed(2)}, 
+                     ${SOAL.v2}: ${SOAL.v2 === vKetemu ? nKetemu.toFixed(2) : nKedua.toFixed(2)}}
+            </div>
+        `;
+        document.getElementById('resultArea').innerHTML = html;
+        document.getElementById('step-2').style.display = 'none';
+        document.getElementById('step-3').style.display = 'block';
+    }
+</script>
+
+</body>
+</html>

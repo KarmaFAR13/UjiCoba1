@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <title>Panel Operator Bendungan</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="dashboard">
+
+    <!-- MONITOR VIDEO -->
+    <div class="monitor">
+        <video id="videoBendungan" autoplay loop muted>
+            <source src="Stabil.mp4" type="video/mp4">
+        </video>
+        <div class="status" id="statusText">STATUS: STABIL</div>
+    </div>
+
+    <!-- PANEL OPERATOR -->
+    <div class="control-panel">
+        <h2>CONTROL PANEL OPERATOR</h2>
+
+        <label>Debit Air Keluar (Liter/detik)</label>
+        <input type="number" id="debitInput" placeholder="Masukkan debit air">
+
+        <button onclick="cekJawaban()">EKSEKUSI SISTEM</button>
+
+        <div class="log" id="hasil">
+            Menunggu perintah operator...
+        </div>
+    </div>
+
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
